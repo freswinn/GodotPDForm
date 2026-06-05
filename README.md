@@ -10,12 +10,15 @@ All PDForm nodes can be found in the node list when adding a new node by typing 
 
 ## PDFormBase
 The base of these nodes is PDFormBase. It is not at all necessary to create a scene where the root node is a PDFormBase, but it is recommended.
+
 In the PDFormBase, you set your document's title and author, select which page is currently visible, and list the file paths of any and all fonts you want to import into the document when exporting.
 PDFormBase should only have PDFormPage nodes as its immediate children, and it requires at least one.
 
 ## PDFormPage
 The child of PDFormBase. Each PDFormPage is a new page that will be added to your document. The size of the page cannot be changed, as it outlines the size of the page in the exported document.
+
 Changing the color of the page does not change the color of the page in the exported document. You will have to do that yourself with a PDFormBox.
+
 PDFormPage's children should be PDFormBox, PDFormImage, and PDFormLabel.
 
 ## PDFormBox
@@ -26,8 +29,11 @@ A child of PDFormPage. Creates an image in the document. Set the texture and siz
 
 ## PDFormLabel
 A child of PDFormPage. Creates text in the document. There are a number of limitations on this.
+
 The text will ignore whatever formatting you throw at it, including font color, line breaks, and alignment. It will always render as a single line of text, and will ignore the size of the label node. This is a limitation from GodotPDF.
+
 You can, however, change the font face and the size of the font. Changing the font size should be done via the provided font_size exported variable found in the inspector.
+
 To change the font face, you must provide the name of the font as provided in PDFormBase. This does not change how the font appears in the editor, however! To do that, you will have to import the font into Godot and then set it via Theme Override/Font.
 
 # Exporting the PDF
