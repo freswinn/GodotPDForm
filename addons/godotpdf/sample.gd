@@ -1,16 +1,16 @@
 extends Control
 
 func _ready():
-	# Create a new PDF document 
+	# Create a new PDF document
 	# This just resets the current PDF data
 	# This also adds 1 blank page to the PDF
 	PDF.newPDF() #PDF.newPDF("New PDF", "Godette")
 	PDF.setTitle("New PDF")
 	PDF.setCreator("Godette")
-	
+
 	# All operations from here on return true or false
 	# Use returns to verify functions are running correctly
-	
+
 	# Add some text to page 1
 	# Format is (page number, position, text, font size, font)
 	# Pages are 612x792 units
@@ -18,17 +18,17 @@ func _ready():
 	# Font is optional (Default is Helvetica)
 	# Fonts MUST be added prior to using them
 	PDF.newLabel(1, Vector2(250,10), "Hello world")
-	
+
 	# Add a new font and a new label using the font
 	# Format is (fontName, fontPath)
 	# Path MUST be to .ttf file
 	PDF.newFont("Amplify", "res://addons/godotpdf/Amplify.ttf")
 	PDF.newLabel(1, Vector2(250,30), "GodotPDF is awesome!", 20, "Amplify")
-	
+
 	# Add a new page
 	# The first page is automatically added when initializing the PDF
 	PDF.newPage()
-	
+
 	# Add some boxes to the new page
 	# Format is (page number, position, size, fill color, border color, border size)
 	# Colors and border size are optional
@@ -36,22 +36,23 @@ func _ready():
 	# Default settings are black fill, no border, border width: 2
 	PDF.newBox(2, Vector2(100, 100), Vector2(100, 300))
 	PDF.newBox(2, Vector2(200, 450), Vector2(300, 100), Color.GREEN, Color.REBECCA_PURPLE, 10)
-	
+
 	# Add some images
 	# Format is (page number, position, image, size(Optional))
 	# Size will default to default image size
 	# Try to only use png and jpeg images
 	var image = Image.load_from_file("res://addons/godotpdf/icon.png")
 	PDF.newImage(1, Vector2(20, 20), image, Vector2(200,200))
-	
+
 	# Set the path to export the pdf to
 	# The target file MUST be of the .pdf type
-	var path = getDesktopPath() + "/GodotPDF.pdf"
-	
+	# var path = getDesktopPath() + "/GodotPDF.pdf"
+	var path = "/home/mothloom/Desktop/GodotPDF.pdf"
+
 	# Export the pdf data
 	# Images will ALWAYS draw behind boxes, which will ALWAYS draw behind text
 	var status = PDF.export(path)
-	
+
 	# Print export status
 	print("Export successful: " + str(status))
 

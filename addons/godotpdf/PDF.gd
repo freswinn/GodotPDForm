@@ -1,111 +1,197 @@
+@tool
 extends Control
 
-var _xref = []
-var _xrefOffset = 0
-var _pages = []
-var _fonts = []
-var _fontList = []
-var _title = ""
-var _creator = ""
-var _pageSize = Vector2i(612, 792)
+#                                            ░██
+#                                            ░██
+# ░█████████████   ░███████  ░█████████████  ░████████   ░███████  ░██░████  ░███████
+# ░██   ░██   ░██ ░██    ░██ ░██   ░██   ░██ ░██    ░██ ░██    ░██ ░███     ░██
+# ░██   ░██   ░██ ░█████████ ░██   ░██   ░██ ░██    ░██ ░█████████ ░██       ░███████
+# ░██   ░██   ░██ ░██        ░██   ░██   ░██ ░███   ░██ ░██        ░██             ░██
+# ░██   ░██   ░██  ░███████  ░██   ░██   ░██ ░██░█████   ░███████  ░██       ░███████
+
+var _xref := []
+var _xrefOffset : int = 0
+var _pages := []
+var _fonts := []
+var _fontList := []
+var _title : String = ""
+var _creator : String = ""
+var _pageSize : Vector2i = Vector2i(612, 792)
+# TODO: Is there some way to change this to match other paper sizes? Predefined set of
+# page sizes?
+
+#            ░██
+#            ░██
+#  ░███████  ░██  ░██████    ░███████   ░███████   ░███████   ░███████
+# ░██    ░██ ░██       ░██  ░██        ░██        ░██    ░██ ░██
+# ░██        ░██  ░███████   ░███████   ░███████  ░█████████  ░███████
+# ░██    ░██ ░██ ░██   ░██         ░██        ░██ ░██               ░██
+#  ░███████  ░██  ░█████░██  ░███████   ░███████   ░███████   ░███████
 
 class _text:
-	func _init(text="", size=12, position=Vector2i(0,0), font="Helvetica") -> void:
+	func _init(
+		text : String = "",
+		size : int = 12,
+		position : Vector2i = Vector2i.ZERO,
+		font : String = "Helvetica") -> void:
+
 		self.text = text
 		self.fontSize = size
 		self.position = position
 		self.font = font
-	var text = ""
-	var fontSize = 12
-	var position = Vector2i(0,0)
-	var font = "Helvetica"
+	var text : String = ""
+	var fontSize : int = 12
+	var position : Vector2i = Vector2i(0,0)
+	var font : String = "Helvetica"
 
 class _box:
-	func _init(position=Vector2i(0,0), size=Vector2i(0,0), border=Color(0.0,0.0,0.0,1.0), fill=Color(0.0,0.0,0.0,1.0), borderWidth=10) -> void:
+	func _init(
+		position : Vector2i = Vector2i.ZERO,
+		size : Vector2i = Vector2i.ZERO,
+		border = Color(0,0,0,1), # will either be Color or null
+		fill = Color(0,0,0,1), # will either be Color or null
+		borderWidth : int = 10) -> void:
+
 		self.size = size
 		self.position = position
 		self.fill = fill
 		self.border = border
 		self.borderWidth = borderWidth
-	var size = Vector2i(0,0)
-	var position = Vector2i(0,0)
+	var size : Vector2i = Vector2i(0,0)
+	var position : Vector2i = Vector2i(0,0)
 	var fill = null
 	var border = null
-	var borderWidth = 10
+	var borderWidth : int = 10
 
 class _image:
-	func _init(position=Vector2i(0,0), size=Vector2i(0,0), data="", format=Image.FORMAT_RGBA8) -> void:
+	func _init(
+		position : Vector2i = Vector2i.ZERO,
+		size : Vector2i = Vector2i.ZERO,
+		data = "", # TODO: It really seems like this should be a :PackedByteArray, given later methods.
+		format : Image.Format = Image.FORMAT_RGBA8) -> void:
+
 		self.position = position
 		self.size = size
 		self.dataStream = data
 		self.format = format
-	var position = Vector2i(0,0)
-	var size = Vector2i(0,0)
-	var dataStream = ""
-	var format=Image.FORMAT_RGBA8
+	var position : Vector2i = Vector2i(0,0)
+	var size : Vector2i = Vector2i(0,0)
+	var dataStream = "" # TODO: It really seems like this should be a :PackedByteArray, given later methods.
+	var format : Image.Format = Image.FORMAT_RGBA8
 
 class _page:
-	var text = []
-	var boxes = []
-	var images = []
+	var text : Array[_text] = []
+	var boxes : Array[_box] = []
+	var images : Array[_image] = []
 
 class _font:
-	func _init(name, path) -> void:
+	func _init(name : String, path : String) -> void:
 		self.fontName = name
 		self.fontPath = path
-	var fontName = ""
-	var fontPath = ""
+	var fontName : String = ""
+	var fontPath : String = ""
 
-func newPDF(t="", c=""):
+
+#                               ░██    ░██                          ░██
+#                               ░██    ░██                          ░██
+# ░█████████████   ░███████  ░████████ ░████████   ░███████   ░████████  ░███████
+# ░██   ░██   ░██ ░██    ░██    ░██    ░██    ░██ ░██    ░██ ░██    ░██ ░██
+# ░██   ░██   ░██ ░█████████    ░██    ░██    ░██ ░██    ░██ ░██    ░██  ░███████
+# ░██   ░██   ░██ ░██           ░██    ░██    ░██ ░██    ░██ ░██   ░███        ░██
+# ░██   ░██   ░██  ░███████      ░████ ░██    ░██  ░███████   ░█████░██  ░███████
+
+
+## Defines the new PDF to create and adds the first page via [method addPage].
+## This must be used before any other changes are made.[br]
+## If the title and creator are not set here, they can be set later with
+## [method setTitle] and [method setCreator].
+func newPDF(pdf_title : String = "", pdf_creator : String = ""):
 	_pages = [_page.new()]
-	_title = t
-	_creator = c
+	_title = pdf_title
+	_creator = pdf_creator
 	_fontList = ["Helvetica"]
 	_fonts = []
 
-func setTitle(t):
+
+
+## Sets the title of the PDF.
+func setTitle(t : String):
 	_title = t
 
-func setCreator(c):
+
+
+## Sets the creator of the PDF.
+func setCreator(c : String):
 	_creator = c
 
+
+
+## Adds a new page to the PDF. [method newPDF] adds a page automatically.
 func newPage() -> bool:
 	_pages.append(_page.new())
 	return true
 
-func newLabel(pageNum : int, labelPosition, labelText : String, labelSize=12, font="Helvetica") -> bool:
-	if labelPosition is Vector2:
-		labelPosition = Vector2i(labelPosition)
-	if not labelPosition is Vector2i:
-		return false
-	var label = _text.new(labelText, labelSize, Vector2i(labelPosition.x, _pageSize.y-labelPosition.y), font)
+
+
+## Adds text to the document. Returns true if successful.
+func newLabel(
+	pageNum : int,
+	labelPosition : Vector2i,
+	labelText : String,
+	labelSize=12,
+	font="Helvetica") -> bool:
+
+	var label = _text.new(
+		labelText, labelSize, Vector2i(
+			labelPosition.x, _pageSize.y-labelPosition.y),
+		font)
 	_pages[pageNum-1].text.append(label)
 	return true
 
-func newBox(pageNum : int, boxPosition, boxSize, fill = Color(0.0,0.0,0.0,1.0), border=null, borderWidth : int = 2) -> bool:
-	if boxPosition is Vector2:
-		boxPosition = Vector2i(boxPosition)
-	if not boxPosition is Vector2i:
-		return false
-	if boxSize is Vector2:
-		boxSize = Vector2i(boxSize)
-	if not boxSize is Vector2i:
-		return false
+
+
+## Draws a box in the document. [param fill] and [param border] must either be a [Color]
+## or null. Returns true if successful.
+func newBox(
+	pageNum : int,
+	boxPosition : Vector2i,
+	boxSize : Vector2i,
+	fill : Variant = Color(0,0,0,1),
+	border : Variant = null,
+	borderWidth : int = 2) -> bool:
+
 	if fill != null and not fill is Color:
 		return false
 	if border != null and not border is Color:
 		return false
-	var box = _box.new(Vector2i(boxPosition.x, _pageSize.y-boxPosition.y-boxSize.y), boxSize, border, fill, borderWidth)
+	var box = _box.new(
+		Vector2i(
+			boxPosition.x, _pageSize.y-boxPosition.y-boxSize.y),
+		boxSize, border, fill, borderWidth)
 	_pages[pageNum-1].boxes.append(box)
 	return true
 
-func newImage(pageNum : int, imagePosition, baseImage : Image, imageSize = null):
-	if baseImage == null or (baseImage.get_format() != Image.FORMAT_RGB8 and baseImage.get_format() != Image.FORMAT_RGBA8):
-		return false
-	if imagePosition is Vector2:
-		imagePosition = Vector2i(imagePosition)
-	if not imagePosition is Vector2i:
-		return false
+
+
+## Adds an image to the document. If [param imageSize] is null, the image is applied
+## at its current size; otherwise, it should be set as a [Vector2i].[br]
+## [param baseImage] is an [Image]; the easiest way to set this parameter is with
+## [code]Image.load_from_file(image_path)[/code].
+## Returns true if successful.[br]
+## [b]NOTE:[/b] Fonts and images must have their export types set to KEEP. To change file
+## export types, click on the file in the FileSystem dock, click the Import tab (usually
+## next to the Scene tab), click the dropdown below "Import As:" and select "Keep File
+## (exported as is)"
+func newImage(
+	pageNum : int,
+	imagePosition : Vector2i,
+	baseImage : Image,
+	imageSize = null) -> bool:
+
+	if baseImage == null or (
+		baseImage.get_format() != Image.FORMAT_RGB8
+		and baseImage.get_format() != Image.FORMAT_RGBA8):
+			return false
 	if imageSize == null:
 		imageSize = baseImage.get_size()
 	if imageSize is Vector2:
@@ -113,16 +199,33 @@ func newImage(pageNum : int, imagePosition, baseImage : Image, imageSize = null)
 	if not imageSize is Vector2i:
 		return false
 	baseImage.resize(imageSize.x, imageSize.y)
-	var image = _image.new(Vector2i(imagePosition.x, _pageSize.y-imagePosition.y-(imageSize.y)), baseImage.get_size(), baseImage.get_data(), baseImage.get_format())
+	var image = _image.new(
+		Vector2i(
+			imagePosition.x, _pageSize.y-imagePosition.y-(imageSize.y)),
+		baseImage.get_size(), baseImage.get_data(), baseImage.get_format())
 	_pages[pageNum-1].images.append(image)
 	return true
 
+
+## Embeds a given font into the document. Must include the absolute path to the font file.
+## Returns true if successful.[br]
+## Embedding a system font is not necessary if the document is going to be exported from
+## the system where the system font resides. Instead, you can just set the font face
+## in [method newLabel] using its [param newLabel.font] parameter.[br]
+## [b]NOTE:[/b] Fonts and images must have their export types set to KEEP. To change file
+## export types, click on the file in the FileSystem dock, click the Import tab (usually
+## next to the Scene tab), click the dropdown below "Import As:" and select "Keep File
+## (exported as is)"
 func newFont(fontName : String, fontPath : String) -> bool:
 	var font = _font.new(fontName, fontPath)
 	_fonts.append(font)
 	_fontList.append(fontName)
 	return true
 
+
+
+## Exports the document to a PDF file at [param path]. Paths must be absolute.
+## No file type checking is done; make sure the path points to a .pdf.
 func export(path : String) -> bool:
 	totalImages = 0
 	totalPages = len(_pages)
@@ -130,20 +233,20 @@ func export(path : String) -> bool:
 	for p in _pages:
 		for i in p.images:
 			images.append(i)
-	
+
 	if path == null or path == "" or len(path) < 5 or path.substr(len(path)-4) != ".pdf":
 		return false
-	
+
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return false
-	
+
 	_xref = []
 	var content = "%PDF-1.6\n"
-	
+
 	_xref.append(len(content))				# save byte offset of next object to xref table
 	content += _addInfo("Test", "Nolan")		# add new info object
-	
+
 	# Add default font
 	_xref.append(len(content))
 	content += str(len(_xref)) + " 0 obj\n<<\n"
@@ -155,36 +258,48 @@ func export(path : String) -> bool:
 	for i in _fonts:
 		_xref.append(len(content) + fontOffset)
 		fontOffset += _addFont(i, len(content) + fontOffset, file)					# add font object
-	
+
 	_xref.append(len(content) + fontOffset)
 	content += _addPageTree()			# add page tree
-	
+
 	while(len(_pages) > 0):
 		_xref.append(len(content) + fontOffset)
 		content += _addPage()				# add new page
 		_xref.append(len(content) + fontOffset)
 		content += _addPageContent()			# add content for new page
-	
+
 	# add pages tree and catalog last
 	_xref.append(len(content) + fontOffset)
 	content += _addCatalog()
 	var root = len(_xref)
-	
+
 	# add image dictionaries
 	file.store_string(content)
 	var offset = len(content) + fontOffset
 	content = ""
 	offset += _addImageDictionary(offset, images, file)
-	
+
 	# adds xref and footer information
 	_xrefOffset = len(content)+offset
 	content += _buildXref()
 	content += _buildTrailer(root)
-	
+
 	file.store_string(content)
 	file.close()
-	
+
 	return true
+
+
+#                     ░██                         ░██
+#                                                 ░██
+# ░████████  ░██░████ ░██░██    ░██  ░██████   ░████████  ░███████
+# ░██    ░██ ░███     ░██░██    ░██       ░██     ░██    ░██    ░██
+# ░██    ░██ ░██      ░██ ░██  ░██   ░███████     ░██    ░█████████
+# ░███   ░██ ░██      ░██  ░██░██   ░██   ░██     ░██    ░██
+# ░██░█████  ░██      ░██   ░███     ░█████░██     ░████  ░███████
+# ░██
+# ░██
+
 
 func _addFont(font, contentLength, file : FileAccess):
 	var fontWidths = "["
@@ -193,21 +308,21 @@ func _addFont(font, contentLength, file : FileAccess):
 	for i in range(256):
 		fontWidths += str(f.get_string_size(char(i), 0, -1, 1000).x) + " "
 	fontWidths += "]"
-	
+
 	var ret = str(len(_xref)) + " 0 obj\n<<\n"
 	ret += "/Type /Font\n/Subtype /TrueType\n/BaseFont /" + font.fontName + "\n"
 	ret += "/FontDescriptor " + str(len(_xref)+1) + " 0 R\n"
 	ret += "/FirstChar 0\n/LastChar 255\n"
 	ret += "/Widths " + fontWidths
 	ret += "\n>>\nendobj\n"
-	
+
 	_xref.append(len(ret) + contentLength)
 	ret += str(len(_xref)) + " 0 obj\n<<\n"
 	ret += "/Type /FontDescriptor\n/FontName /" + font.fontName + "\n"
 	ret += "/FontFile2 " + str(len(_xref)+1) + " 0 R\n"
 	ret += "/Flags 6\n/FontBBox [-1000 -1000 1000 1000]\n/MissingWidth 500"
 	ret += "\n>>\nendobj\n"
-	
+
 	_xref.append(len(ret) + contentLength)
 	ret += str(len(_xref)) + " 0 obj\n<<\n"
 	var fontStream = FileAccess.get_file_as_bytes(font.fontPath)
@@ -221,7 +336,7 @@ func _addFont(font, contentLength, file : FileAccess):
 	ret = "\nendstream\nendobj\n"
 	file.store_string(ret)
 	offset += len(ret)
-	
+
 	return offset
 
 func _addInfo(Title=null, Creator=null):
@@ -310,7 +425,7 @@ func _addImageDictionary(contentLength, images, file : FileAccess):
 		ret += "stream\n"
 		file.store_string(ret)
 		offset += len(ret)
-		
+
 		# Add dataStreamAsBytes
 		match(i.format):
 			Image.FORMAT_RGBA8:
@@ -328,7 +443,7 @@ func _addImageDictionary(contentLength, images, file : FileAccess):
 				for j in i.dataStream:
 					file.store_8(j)
 					offset += 1
-					
+
 		ret = "\nendstream\nendobj\n"
 		file.store_string(ret)
 		offset += len(ret)
