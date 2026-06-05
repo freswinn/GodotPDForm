@@ -1,0 +1,1 @@
+Takes the GodotPDF plugin and creates a simple way to generate forms that it can then convert to PDF files.
