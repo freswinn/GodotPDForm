@@ -46,8 +46,7 @@ func _ready():
 
 	# Set the path to export the pdf to
 	# The target file MUST be of the .pdf type
-	# var path = getDesktopPath() + "/GodotPDF.pdf"
-	var path = "/home/mothloom/Desktop/GodotPDF.pdf"
+	var path = getDesktopPath() + "/GodotPDF.pdf"
 
 	# Export the pdf data
 	# Images will ALWAYS draw behind boxes, which will ALWAYS draw behind text
