@@ -9,9 +9,10 @@ All PDForm nodes can be found in the node list when adding a new node by typing 
 ![Screenshot of Godot showing a sample PDForm scene and its scene tree](/img/NodeTree.png)
 
 ## PDFormBase
-The base of these nodes is PDFormBase. It is not at all necessary to create a scene where the root node is a PDFormBase, but it is recommended.
+The base of these nodes is PDFormBase. While PDFormBase is required to use the PDForm nodes, tt is not at all necessary to create a scene where the root node is a PDFormBase -- just recommended.
 
 In the PDFormBase, you set your document's title and author, select which page is currently visible, and list the file paths of any and all fonts you want to import into the document when exporting.
+
 PDFormBase should only have PDFormPage nodes as its immediate children, and it requires at least one.
 
 ## PDFormPage
