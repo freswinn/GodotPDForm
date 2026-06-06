@@ -1,6 +1,8 @@
 # Introduction
 GodotPDForm is a fork of GodotPDF, which can be found here: https://github.com/nng2/GodotPDF
 
+![](/addons/GodotPDForm/icon.png)
+
 In this fork, I have modified the code somewhat, mostly adding documentation and typecasts, but also adding new classes of nodes to the Godot editor. With these classes, you are now able to build a scene that acts as a form for your PDF document, which you can then directly call to export as a PDF.
 
 ## Compatibility
