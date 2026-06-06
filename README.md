@@ -9,6 +9,11 @@ Because this has been built directly on top of GodotPDF, it will create the same
 ### Godot versions
 This has been tested on Godot 4.6. I am quite sure it is compatible with earlier versions, but I have not tested them.
 
+## Notes on Installation
+After installation, the engine will likely try to incorporate the new classes into the engine while the singleton is not active yet. This will cause a couple of warnings.
+
+Just activate the plugin (Project/Project Settings.../Plugin tab, then activate GodotPDForm) and then reload the project, and you'll be good to go!
+
 # PDForm Nodes
 All PDForm nodes can be found in the node list when adding a new node by typing PDForm.
 
